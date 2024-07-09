@@ -68,105 +68,105 @@ afterEvaluate {
         curArtifactId = "${project.getName()}${artifactIdSuffix}"
 
         def publicationName = "android${variant.name.capitalize()}"
-        publishing.publications {
-            "$publicationName"(MavenPublication) {
-                // The coordinates of the library, being set from variables that
-                // we'll set up in a moment
-                groupId GROUP
-                artifactId curArtifactId
-                version VERSION_NAME
-
-                // Two artifacts, the `aar` and the sources
-                if (project.hasProperty("android")) {
-                    if (hasFlavors) {
-                        variant.productFlavors.each { flavor ->
-                            artifact("build/outputs/aar/${project.getName()}-${flavor.name}-release.aar")
-                        }
-                    } else {
-                        artifact("build/outputs/aar/${project.getName()}-release.aar")
-                    }
-                    artifact androidSourcesJar
-                } else {
-                    artifact("$buildDir/libs/${project.getName()}.jar")
-                    artifact androidSourcesJar
-                    artifact javadocJar
-                }
-                pom {
-                    name = "${project.getName()}"
-                    description = rootProject.name
-                    // If your project has a dedicated site, use its URL here
-                    url = POM_URL
-                    licenses {
-                        license {
-                            name = POM_LICENCE_NAME
-                            url = POM_LICENCE_URL
-                        }
-                    }
-                    developers {
-                        developer {
-                            id = POM_DEVELOPER_ID
-                            name = POM_DEVELOPER_NAME
-                        }
-                    }
-                    // Version control info, if you're using GitHub, follow the format as seen here
-                    scm {
-
-                        connection = POM_SCM_CONNECTION
-                        developerConnection = POM_SCM_DEV_CONNECTION
-                        //branch address：
-                        url = POM_SCM_URL
-                    }
-                    // A slightly hacky fix so that your POM will include any transitive dependencies
-                    // that your library builds upon
-                    withXml {
-                        def dependenciesNode = asNode().appendNode('dependencies')
-                        project.configurations.implementation.allDependencies.each {
-                            if (it.group != null) {
-                                def dependencyNode = dependenciesNode.appendNode('dependency')
-                                if ((it.group).contains(rootProject.name)) {
-                                    dependencyNode.appendNode('groupId', GROUP)
-                                    // Consider a java project like "shark"
-                                    if (it.dependencyProject.hasProperty("android")) {
-                                        dependencyNode.appendNode('artifactId', "$it.name${artifactIdSuffix}")
-                                    } else {
-                                        dependencyNode.appendNode('artifactId', it.name)
-                                    }
-                                    dependencyNode.appendNode('version', VERSION_NAME)
-                                } else {
-                                    dependencyNode.appendNode('groupId', it.group)
-                                    dependencyNode.appendNode('artifactId', it.name)
-                                    dependencyNode.appendNode('version', it.version)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+//        publishing.publications {
+//            "$publicationName"(MavenPublication) {
+//                // The coordinates of the library, being set from variables that
+//                // we'll set up in a moment
+//                groupId GROUP
+//                artifactId curArtifactId
+//                version VERSION_NAME
+//
+//                // Two artifacts, the `aar` and the sources
+//                if (project.hasProperty("android")) {
+//                    if (hasFlavors) {
+//                        variant.productFlavors.each { flavor ->
+//                            artifact("build/outputs/aar/${project.getName()}-${flavor.name}-release.aar")
+//                        }
+//                    } else {
+//                        artifact("build/outputs/aar/${project.getName()}-release.aar")
+//                    }
+//                    artifact androidSourcesJar
+//                } else {
+//                    artifact("$buildDir/libs/${project.getName()}.jar")
+//                    artifact androidSourcesJar
+//                    artifact javadocJar
+//                }
+//                pom {
+//                    name = "${project.getName()}"
+//                    description = rootProject.name
+//                    // If your project has a dedicated site, use its URL here
+//                    url = POM_URL
+//                    licenses {
+//                        license {
+//                            name = POM_LICENCE_NAME
+//                            url = POM_LICENCE_URL
+//                        }
+//                    }
+//                    developers {
+//                        developer {
+//                            id = POM_DEVELOPER_ID
+//                            name = POM_DEVELOPER_NAME
+//                        }
+//                    }
+//                    // Version control info, if you're using GitHub, follow the format as seen here
+//                    scm {
+//
+//                        connection = POM_SCM_CONNECTION
+//                        developerConnection = POM_SCM_DEV_CONNECTION
+//                        //branch address：
+//                        url = POM_SCM_URL
+//                    }
+//                    // A slightly hacky fix so that your POM will include any transitive dependencies
+//                    // that your library builds upon
+//                    withXml {
+//                        def dependenciesNode = asNode().appendNode('dependencies')
+//                        project.configurations.implementation.allDependencies.each {
+//                            if (it.group != null) {
+//                                def dependencyNode = dependenciesNode.appendNode('dependency')
+//                                if ((it.group).contains(rootProject.name)) {
+//                                    dependencyNode.appendNode('groupId', GROUP)
+//                                    // Consider a java project like "shark"
+//                                    if (it.dependencyProject.hasProperty("android")) {
+//                                        dependencyNode.appendNode('artifactId', "$it.name${artifactIdSuffix}")
+//                                    } else {
+//                                        dependencyNode.appendNode('artifactId', it.name)
+//                                    }
+//                                    dependencyNode.appendNode('version', VERSION_NAME)
+//                                } else {
+//                                    dependencyNode.appendNode('groupId', it.group)
+//                                    dependencyNode.appendNode('artifactId', it.name)
+//                                    dependencyNode.appendNode('version', it.version)
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
     }
 
-    publishing.repositories {
-        // The repository to publish to, Sonatype/MavenCentral
-        maven {
-            // This is an arbitrary name, you may also use "mavencentral" or
-            // any other name that's descriptive for you
-            name = rootProject.name
-            def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-            def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-            // You only need this if you want to publish snapshots, otherwise just set the URL
-            // to the release repo directly
-            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-
-            // The username and password we've fetched earlier
-            credentials {
-                username ossrhUsername
-                password ossrhPassword
-            }
-        }
-    }
-    signing {
-        sign publishing.publications
-    }
+//    publishing.repositories {
+//        // The repository to publish to, Sonatype/MavenCentral
+//        maven {
+//            // This is an arbitrary name, you may also use "mavencentral" or
+//            // any other name that's descriptive for you
+//            name = rootProject.name
+//            def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+//            def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+//            // You only need this if you want to publish snapshots, otherwise just set the URL
+//            // to the release repo directly
+//            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+//
+//            // The username and password we've fetched earlier
+//            credentials {
+//                username ossrhUsername
+//                password ossrhPassword
+//            }
+//        }
+//    }
+//    signing {
+//        sign publishing.publications
+//    }
 }
 
 
